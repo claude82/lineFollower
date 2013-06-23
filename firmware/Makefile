@@ -1,101 +1,46 @@
+# File:   Makefile
+# Author: Claude Meffan, Student
+# Date:   5 June 2013
+# Descr:  Makefile for lineFollower
 
-PRG            = lineFollower
-OBJ            = main.o
-PROGRAMMER     = avrisp
-MCU_TARGET     = atmega32u2
-AVRDUDE_TARGET = atmega32u2
-OPTIMIZE       = -Os
-PORT           = atmega32u2
-DEFS           =
-LIBS           =
-
-HZ          = 8000000
-
-# You should not have to change anything below here.
-
-CC             = avr-gcc
-
-# Override is only needed by avr-lib build system.
-
-override CFLAGS        = -g -DF_CPU=$(HZ) -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS)
-override LDFLAGS       = -Wl,-Map,$(PRG).map
-
-OBJCOPY        = avr-objcopy
-OBJDUMP        = avr-objdump
-
-all: $(PRG).elf lst text #eeprom
-
-$(PRG).elf: $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
-
-clean:
-	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak *.hex *.bin *.srec
-	rm -rf *.lst *.map $(EXTRA_CLEAN_FILES)
-
-lst:  $(PRG).lst
-
-%.lst: %.elf
-	$(OBJDUMP) -h -S $< > $@
-
-# Rules for building the .text rom images
-
-text: hex bin srec
-
-hex:  $(PRG).hex
-bin:  $(PRG).bin
-srec: $(PRG).srec
-
-%.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
-
-%.srec: %.elf
-	$(OBJCOPY) -j .text -j .data -O srec $< $@
-
-%.bin: %.elf
-	$(OBJCOPY) -j .text -j .data -O binary $< $@
-
-# Rules for building the .eeprom rom images
-
-eeprom: ehex ebin esrec
+# Definitions.
+CC = avr-gcc
+CFLAGS = -mmcu=atmega32u2 -Os -Wall -Wstrict-prototypes -Wextra -g -I../../drivers/avr -I../../utils
+OBJCOPY = avr-objcopy
+SIZE = avr-size
+DEL = rm
 
 
-ehex:  $(PRG)_eeprom.hex
-#ebin:  $(PRG)_eeprom.bin
-esrec: $(PRG)_eeprom.srec
-
-%_eeprom.hex: %.elf
-	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
-
-#%_eeprom.srec: %.elf
-#	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O srec $< $@
-
-%_eeprom.bin: %.elf
-	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O binary $< $@
+# Default target.
+all: lineFollower.out
 
 
-# command to program chip (invoked by running "make install")
-flash:  $(PRG).hex
-	dfu-programmer $(MCU_TARGET) erase
-	dfu-programmer $(MCU_TARGET) flash $(PRG).hex
-	dfu-programmer $(MCU_TARGET) start
+# Compile: create object files from C source files.
+main.o: main.c ../../ucfk4/drivers/avr/pio.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
-fuse:
-	avrdude -p $(AVRDUDE_TARGET) -c $(PROGRAMMER) -P $(PORT) -v \
-	-U lfuse:w:0xc6:m -U hfuse:w:0xd9:m 	
+pio.o: ../../ucfk4/drivers/avr/pio.c ../../ucfk4/drivers/avr/pio.h ../../ucfk4/drivers/avr/system.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
-ddd: gdbinit
-	ddd --debugger "avr-gdb -x $(GDBINITFILE)"
+system.o: ../../ucfk4/drivers/avr/system.c ../../ucfk4/drivers/avr/system.h
+	$(CC) -c $(CFLAGS) $< -o $@
 
-gdbserver: gdbinit
-	simulavr --device $(MCU_TARGET) --gdbserver
+# Link: create output file (executable) from object files.
+lineFollower.out: main.o pio.o system.o
+	$(CC) $(CFLAGS) $^ -o $@ -lm
+	$(SIZE) $@
 
-gdbinit: $(GDBINITFILE)
 
-$(GDBINITFILE): $(PRG).hex
-	@echo "file $(PRG).elf" > $(GDBINITFILE)
+# Target: clean project.
+.PHONY: clean
+clean: 
+	-$(DEL) *.o *.out *.hex
 
-	@echo "target remote localhost:1212" >> $(GDBINITFILE)
-	@echo "load"                         >> $(GDBINITFILE)
-	@echo "break main"                   >> $(GDBINITFILE)
-	@echo
-	@echo "Use 'avr-gdb -x $(GDBINITFILE)'"
+
+# Target: program project.
+.PHONY: program
+program: lineFollower.out
+	$(OBJCOPY) -O ihex lineFollower.out lineFollower.hex
+	dfu-programmer atmega32u2 erase; dfu-programmer atmega32u2 flash lineFollower.hex; dfu-programmer atmega32u2 start
+
+
