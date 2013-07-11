@@ -28,13 +28,21 @@ system.o: ../../ucfk4/drivers/avr/system.c ../../ucfk4/drivers/avr/system.h
 timer0.o: ../../ucfk4/drivers/avr/timer0.c ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/system.h ../../ucfk4/drivers/avr/bits.h ../../ucfk4/drivers/avr/prescale.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-
 prescale.o: ../../ucfk4/drivers/avr/prescale.c ../../ucfk4/drivers/avr/prescale.h ../../ucfk4/drivers/avr/system.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+periDrive.o: periDrive.c periDrive.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
+#pwm.o: pwm.c  pwm.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
+#	$(CC) -c $(CFLAGS) $< -o $@
+
+#sensorInput.o: sensorInput.c sensorInput.h ../../ucfk4/drivers/avr/pio.h
+#	$(CC) -c $(CFLAGS) $< -o $@
+
 
 # Link: create output file (executable) from object files.
-lineFollower.out: main.o pio.o system.o timer0.o prescale.o
+lineFollower.out: main.o pio.o system.o timer0.o prescale.o periDrive.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 
