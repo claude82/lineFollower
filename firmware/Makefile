@@ -5,7 +5,7 @@
 
 # Definitions.
 CC = avr-gcc
-CFLAGS = -mmcu=atmega32u2 -Os -Wall -Wstrict-prototypes -Wextra -g -I../../drivers/avr -I../../utils
+CFLAGS = -mmcu=atmega32u2 -Os -Wall -DF_CPU=8000000 -Wstrict-prototypes -Wextra -g -I../../drivers/avr -I../../utils
 OBJCOPY = avr-objcopy
 SIZE = avr-size
 DEL = rm
@@ -34,6 +34,9 @@ prescale.o: ../../ucfk4/drivers/avr/prescale.c ../../ucfk4/drivers/avr/prescale.
 periDrive.o: periDrive.c periDrive.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+AI.o: AI.c AI.h periDrive.h
+	$(CC) -c $(CFLAGS) $< -o $@
+
 #pwm.o: pwm.c  pwm.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
 #	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -42,7 +45,7 @@ periDrive.o: periDrive.c periDrive.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk
 
 
 # Link: create output file (executable) from object files.
-lineFollower.out: main.o pio.o system.o timer0.o prescale.o periDrive.o
+lineFollower.out: main.o pio.o system.o timer0.o prescale.o periDrive.o AI.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 	$(SIZE) $@
 

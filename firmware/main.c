@@ -10,17 +10,14 @@
 #include "../../ucfk4/drivers/avr/pio.h"
 
 
-
 int main(void)
 {
-        
-    pwmOutputInit ();
-    pwmFrequencySet (5000);
-    pwmDutySet (50, 2);
+    motorsInit ();
+    motorState(2, 1);
     
     while (1)
     {
-        //Do Nothing! In Theory the PWM hardware should be doing everything.
+        //The main execution loop of the robot.
     }
     return 0;               /* never reached */
 }

@@ -12,6 +12,11 @@
 #include "../../ucfk4/drivers/avr/pio.h"
 #include "periDrive.h"
 
+void buttonIntialise(void)
+{
+    pio_config_set (GP_BUTTON, PIO_INPUT);
+}
+
 void pwmOutputInit (void)
 {
     pio_config_set (PWM_A, PIO_OUTPUT_LOW);
@@ -30,7 +35,7 @@ void pwmFrequencySet(int period)
     timer0_period_set (period);
 }
 
-int pwmDutySet (int percent, int channelSelect)
+int motorSpeedSet (int percent, int channelSelect)
 {
     int value;
     int rv = 0;
@@ -111,3 +116,45 @@ int onLine (int sensor)
     
     return rv;
 }
+
+void motorsInit (void)
+{
+    
+    pwmOutputInit ();
+    pwmFrequencySet (5000);
+
+    motorSpeedSet (0, 2);
+    pio_config_set (MOTOR_TWO_ENABLE, PIO_OUTPUT_LOW);
+    pio_config_set (MOTOR_TWO_A, PIO_OUTPUT_LOW);
+    pio_config_set (MOTOR_ONE_ENABLE, PIO_OUTPUT_LOW);
+    pio_config_set (MOTOR_ONE_B, PIO_OUTPUT_LOW);
+}
+
+int motorState (int motor, int state)
+{
+    int rv = 1;
+    
+    if (motor == 0)
+    {
+        pio_output_set (MOTOR_ONE_ENABLE, state);
+    }
+    
+    else if (motor == 1)
+    {
+        pio_output_set (MOTOR_TWO_ENABLE, state);
+    }
+    
+    else if (motor == 2)
+    {
+        pio_output_set (MOTOR_ONE_ENABLE, state);
+        pio_output_set (MOTOR_TWO_ENABLE, state);
+    }
+    
+    else
+    {
+        rv = 0;
+    }
+    
+    return rv;
+}
+
