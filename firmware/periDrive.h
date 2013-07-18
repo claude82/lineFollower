@@ -12,6 +12,7 @@
 #define _periDrive_h
 
 #include "../../ucfk4/drivers/avr/pio.h"
+#include "AI.h"
 
 //Pin definitions
 
@@ -39,7 +40,11 @@
 
 #define MOTOR_ONE_ENABLE PIO_DEFINE (PORT_D, 4)
 
+#define GP_LED PIO_DEFINE (PORT_D, 5)
+
 #define GP_BUTTON PIO_DEFINE (PORT_D, 7)
+
+
 
 
 /* Sets the genreal purpose button configured on PD7 as an input   */
@@ -89,6 +94,11 @@ void motorsInit (void);
  */
 int motorState (int motor, int state);
 
+
+/*Updates, and debounces the optical sensor readings */
+/*Takes the AI structure as input                    */
+
+void updateSensors (intelligence_t *mrRoboto);
 
 
 

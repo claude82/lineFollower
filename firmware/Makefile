@@ -34,9 +34,15 @@ prescale.o: ../../ucfk4/drivers/avr/prescale.c ../../ucfk4/drivers/avr/prescale.
 periDrive.o: periDrive.c periDrive.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
-AI.o: AI.c AI.h periDrive.h
+AI.o: AI.c AI.h periDrive.h ../../ucfk4/drivers/avr/pio.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
+
+
+
+# Object file commands for old modules
+#
+#
 #pwm.o: pwm.c  pwm.h ../../ucfk4/drivers/avr/timer0.h ../../ucfk4/drivers/avr/pio.h
 #	$(CC) -c $(CFLAGS) $< -o $@
 

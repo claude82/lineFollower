@@ -11,11 +11,14 @@
 #include "../../ucfk4/drivers/avr/timer0.h"
 #include "../../ucfk4/drivers/avr/pio.h"
 #include "periDrive.h"
+#include "AI.h"
 
 void buttonIntialise(void)
 {
     pio_config_set (GP_BUTTON, PIO_INPUT);
 }
+
+
 
 void pwmOutputInit (void)
 {
@@ -39,7 +42,7 @@ int motorSpeedSet (int percent, int channelSelect)
 {
     int value;
     int rv = 0;
-    value = (percent*255)/100;
+    value = ((100-percent)*255)/100;
     
     
     if (value > 255)
@@ -88,26 +91,26 @@ int onLine (int sensor)
 {
     int rv = 0;
     
-    if (sensor == 1)
+    if (sensor == 0)
     {
-        if (pio_input_get (SENS_ONE) == 1)
+        if (pio_input_get (SENS_ONE) == 0)
         {
             rv = 1;
         }
     }
     
+    
+    else if (sensor == 1)
+    {
+        if ((pio_input_get (SENS_TWO) == 0))
+        {
+            rv = 1;
+        }
+    }
     
     else if (sensor == 2)
     {
-        if (pio_input_get (SENS_TWO) == 1)
-        {
-            rv = 1;
-        }
-    }
-    
-    else if (sensor == 3)
-    {
-        if (pio_input_get (SENS_THREE) == 1)
+        if (pio_input_get (SENS_THREE) == 0)
         {
             rv = 1;
         }
@@ -156,5 +159,51 @@ int motorState (int motor, int state)
     }
     
     return rv;
+}
+
+void updateSensors (intelligence_t *mrRoboto)
+{
+    int sample;
+    int sensor;
+    //four samples is the debounce delay
+    int good = 1;
+    int reading = 0;
+
+    for (sensor = 0; sensor < 3; sensor++)
+    {
+        int lastSensorState = onLine (sensor);
+        
+        for (sample = 0; sample <= 6; sample++)
+        {
+            reading = onLine (sensor);
+            
+            if (reading != lastSensorState)
+            {
+                //good = 0;
+            }
+            
+            // If the sample as been there for longer than the required delay,
+            // it is actually there so  re-write the sensor state
+        }
+        if (good == 1)
+        {
+            if (sensor == 0)
+            {
+                mrRoboto->sensor1 = lastSensorState;
+            }
+            else if (sensor == 1)
+            {
+                mrRoboto->sensor2 = lastSensorState;
+            }
+            else if (sensor == 2)
+            {
+                mrRoboto->sensor3 = lastSensorState;
+            }
+        }
+        else
+        {
+            sensor--;
+        }
+    }
 }
 
